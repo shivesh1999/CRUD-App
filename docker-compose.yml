@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  db:
+    image : postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    ports:
+      - "5432:5432"
+
+  backend:
+    build:
+      context: .
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./client
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
