@@ -12,4 +12,8 @@ func (repo *Repository) SetupRoutes(app *fiber.App) {
 	api.Patch("/contacts/:id", repo.UpdateContact)
 	api.Delete("/contacts/:id", repo.DeleteContact)
 	api.Get("/contacts/:id", repo.GetContactByID)
+	api.Post("/register", repo.RegisterUser)
+	api.Post("/login", repo.LoginUser)
+	api.Get("/user", repo.User)
+	api.Post("/logout", repo.Logout)
 }
