@@ -54,7 +54,7 @@ export default function List() {
                 <div className="lg:w-1/3 w-full">
                     <div className="p-10">
                         <div className="mb-10 flex items-center justify-between">
-                            <h1 className="font-bold">CRUD App</h1>
+                            <h1 className="font-bold">Contacts</h1>
                             <button className="bg-purple-700 text-white px-3 py-1.5 rounded" onClick={openModal}>Add Contact</button>
                         </div>
                         <div className="">
