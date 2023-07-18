@@ -1,1 +1,1 @@
-export const API_URL = "http://127.0.0.1:8080/api"
+export const API_URL = process.env.REACT_APP_BACKEND_API_URL
