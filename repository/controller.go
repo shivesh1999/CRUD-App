@@ -3,7 +3,7 @@ package repository
 import (
 	"net/http"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gin-gonic/gin"
 	"github.com/morkid/paginate"
 	"github.com/shivesh/crud-app/database/migrations"
 	"github.com/shivesh/crud-app/database/models"
@@ -33,76 +33,62 @@ func ValidateStruct(contact models.Contact) []*ErrorResponse {
 	return errors
 }
 
-func (r *Repository) CreateContact(context *fiber.Ctx) error {
-	contact := models.Contact{}
-	err := context.BodyParser(&contact)
-
-	if err != nil {
-		context.Status(http.StatusUnprocessableEntity).JSON(
-			&fiber.Map{"message": "Request failed"})
-
-		return err
+func (r *Repository) CreateContact(c *gin.Context) {
+	var contact models.Contact
+	if err := c.ShouldBindJSON(&contact); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"message": "Request failed"})
+		return
 	}
 	errors := ValidateStruct(contact)
 	if errors != nil {
-		return context.Status(fiber.StatusBadRequest).JSON(errors)
+		c.JSON(http.StatusBadRequest, errors)
+		return
 	}
-
 	if err := r.DB.Create(&contact).Error; err != nil {
-		return context.Status(http.StatusBadRequest).JSON(fiber.Map{"status": "error", "message": "Couldn't create contact", "data": err})
+		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": "Couldn't create contact", "data": err})
+		return
 	}
-
-	context.Status(http.StatusOK).JSON(&fiber.Map{"message": "Contact has been added", "data": contact})
-	return nil
+	c.JSON(http.StatusOK, gin.H{"message": "Contact has been added", "data": contact})
 }
-func (r *Repository) UpdateContact(context *fiber.Ctx) error {
-	contact := models.Contact{}
-	err := context.BodyParser(&contact)
-
-	if err != nil {
-		context.Status(http.StatusUnprocessableEntity).JSON(
-			&fiber.Map{"message": "Request failed"})
-
-		return err
+func (r *Repository) UpdateContact(c *gin.Context) {
+	var contact models.Contact
+	if err := c.ShouldBindJSON(&contact); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"message": "Request failed"})
+		return
 	}
 	errors := ValidateStruct(contact)
 	if errors != nil {
-		return context.Status(fiber.StatusBadRequest).JSON(errors)
+		c.JSON(http.StatusBadRequest, errors)
+		return
 	}
-
 	db := r.DB
-	id := context.Params("id")
-
+	id := c.Param("id")
 	if id == "" {
-		context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message": "ID cannot be empty"})
-		return nil
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "ID cannot be empty"})
+		return
 	}
 	if db.Model(&contact).Where("id = ?", id).Updates(&contact).RowsAffected == 0 {
-		context.Status(http.StatusBadRequest).JSON(&fiber.Map{"message": "Could not get User with given id"})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Could not get User with given id"})
+		return
 	}
-
-	return context.JSON(fiber.Map{"status": "success", "message": "User successfully updated"})
+	c.JSON(http.StatusOK, gin.H{"status": "success", "message": "User successfully updated"})
 }
 
-func (r *Repository) DeleteContact(context *fiber.Ctx) error {
+func (r *Repository) DeleteContact(c *gin.Context) {
 	contactModel := migrations.Contacts{}
-	id := context.Params("id")
+	id := c.Param("id")
 	if id == "" {
-		context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message": "ID cannot be empty"})
-		return nil
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "ID cannot be empty"})
+		return
 	}
-
-	err := r.DB.Delete(contactModel, id)
-
+	err := r.DB.Delete(&contactModel, id)
 	if err.Error != nil {
-		context.Status(http.StatusBadRequest).JSON(&fiber.Map{"message": "could not delete contact"})
-		return err.Error
+		c.JSON(http.StatusBadRequest, gin.H{"message": "could not delete contact"})
+		return
 	}
-
-	context.Status(http.StatusOK).JSON(&fiber.Map{"message": "Contact delete successfully"})
-	return nil
+	c.JSON(http.StatusOK, gin.H{"message": "Contact delete successfully"})
 }
-func (r *Repository) GetContacts(context *fiber.Ctx) error {
+func (r *Repository) GetContacts(c *gin.Context) {
 	db := r.DB
 	model := db.Model(&migrations.Contacts{})
 
@@ -111,27 +97,22 @@ func (r *Repository) GetContacts(context *fiber.Ctx) error {
 		CustomParamEnabled: true,
 	})
 
-	page := pg.With(model).Request(context.Request()).Response(&[]migrations.Contacts{})
+	page := pg.With(model).Request(c.Request).Response(&[]migrations.Contacts{})
 
-	context.Status(http.StatusOK).JSON(&fiber.Map{
-		"data": page,
-	})
-	return nil
+	c.JSON(http.StatusOK, gin.H{"data": page})
 }
 
-func (r *Repository) GetContactByID(context *fiber.Ctx) error {
-	id := context.Params("id")
+func (r *Repository) GetContactByID(c *gin.Context) {
+	id := c.Param("id")
 	contactModel := &migrations.Contacts{}
 	if id == "" {
-		context.Status(http.StatusInternalServerError).JSON(&fiber.Map{"message": "ID cannot be empty"})
-		return nil
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "ID cannot be empty"})
+		return
 	}
-
 	err := r.DB.Where("id = ?", id).First(contactModel).Error
 	if err != nil {
-		context.Status(http.StatusBadRequest).JSON(&fiber.Map{"message": "Could not get the contact"})
-		return err
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Could not get the contact"})
+		return
 	}
-	context.Status(http.StatusOK).JSON(&fiber.Map{"message": "Contact id fetched successfully", "data": contactModel})
-	return nil
+	c.JSON(http.StatusOK, gin.H{"message": "Contact id fetched successfully", "data": contactModel})
 }

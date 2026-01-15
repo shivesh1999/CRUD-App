@@ -23,12 +23,22 @@ export default function EachContact({ contact, fetchData }) {
     }
 
     const updateContact = (e) => {
-        e.preventDefault()
+        e.preventDefault();
         var form = document.getElementById(`editform-${contact.ID}`);
         var formData = new FormData(form);
-        axios.patch(`${API_URL}/contacts/${contact.ID}`, formData)
-            .then(res => completeForm())
-            .catch(error => console.log(error.response))
+        // Convert FormData to JSON with correct keys
+        const data = {
+            name: formData.get('Name'),
+            email: formData.get('Email'),
+            MobileNumber: formData.get('MobileNumber'),
+            city: formData.get('City'),
+            country: formData.get('Country')
+        };
+        axios.patch(`${API_URL}/contacts/${contact.ID}`, data, {
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(res => completeForm())
+        .catch(error => console.log(error.response));
     }
 
     const deleteContact = () => {

@@ -4,15 +4,15 @@ import (
 	"log"
 	"os"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/shivesh/crud-app/database/migrations"
 	"github.com/shivesh/crud-app/database/storage"
 	"github.com/shivesh/crud-app/repository"
 )
 
-func InitializeApp(app *fiber.App) {
+func InitializeApp(router *gin.Engine) {
 	_, ok := os.LookupEnv("APP_ENV")
 
 	if !ok {
@@ -44,7 +44,7 @@ func InitializeApp(app *fiber.App) {
 		DB: db,
 	}
 
-	app.Use(cors.New(cors.Config{AllowCredentials: true}))
-	repo.SetupRoutes(app)
-	app.Listen(":8080")
+	router.Use(cors.Default())
+	repo.SetupRoutes(router)
+	router.Run(":8080")
 }

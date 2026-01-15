@@ -39,12 +39,17 @@ export default function List() {
     }
 
     const storeContact = (e) => {
-        e.preventDefault()
+        e.preventDefault();
         var form = document.getElementById('newform');
         var formData = new FormData(form);
-        axios.post(`${API_URL}/contacts`, formData)
-            .then(res => completeForm(form))
-            .catch(error => console.log(error.response))
+        // Convert FormData to JSON
+        const data = {};
+        formData.forEach((value, key) => { data[key] = value });
+        axios.post(`${API_URL}/contacts`, data, {
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(res => completeForm(form))
+        .catch(error => console.log(error.response));
     }
 
     let myPage = searchParams.get("page") ? searchParams.get("page") : 0;

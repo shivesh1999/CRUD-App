@@ -1,15 +1,14 @@
 package repository
 
-import "github.com/gofiber/fiber/v2"
+import "github.com/gin-gonic/gin"
 
-func (repo *Repository) SetupRoutes(app *fiber.App) {
-	//routes.Setup(repo, app)
-	app.Static("/", "./client/public")
+func (repo *Repository) SetupRoutes(router *gin.Engine) {
+	router.Static("/static", "./client/public")
 
-	api := app.Group("/api")
-	api.Get("/contacts", repo.GetContacts)
-	api.Post("/contacts", repo.CreateContact)
-	api.Patch("/contacts/:id", repo.UpdateContact)
-	api.Delete("/contacts/:id", repo.DeleteContact)
-	api.Get("/contacts/:id", repo.GetContactByID)
+	api := router.Group("/api")
+	api.GET("/contacts", repo.GetContacts)
+	api.POST("/contacts", repo.CreateContact)
+	api.PATCH("/contacts/:id", repo.UpdateContact)
+	api.DELETE("/contacts/:id", repo.DeleteContact)
+	api.GET("/contacts/:id", repo.GetContactByID)
 }
